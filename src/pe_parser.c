@@ -122,9 +122,14 @@ void print_data_dictionary_table_info(FILE* file, DATA_DIRECTORY_TABLE *data_dic
         "Reserved Directory"
     };
     printf("Data Directory Table:\n");
-    for(int i=0; i<sizeof(DATA_DIRECTORY_TABLE); i++) {
+    for(int i=0; i<DATA_DIRECTORY_TABLE_LENGTH; i++) {
         DATA_DIRECTORY *current_directory = (DATA_DIRECTORY *)((char *)data_dictionary_table + (sizeof(DATA_DIRECTORY) * i));
         printf("%-30s: Virtual Address: 0x%08X, Size: 0x%08X\n", directory_names[i], current_directory->VirtualAddress, current_directory->Size);
+        fseek(file, current_directory->VirtualAddress, SEEK_SET);
+        BYTE *bytes = (BYTE *)malloc(current_directory->Size);
+        fread(bytes, 1, current_directory->Size, file);
+        print_raw_bytes(bytes, current_directory->Size, 80);
+        free(bytes);
     }
 }
 
@@ -145,6 +150,7 @@ void print_section_table_info(FILE *file, FILE_HEADER *file_header, SECTION_HEAD
         BYTE *bytes = (BYTE *)malloc(section_header_table[i].SizeOfRawData);
         fread(bytes, 1, section_header_table[i].SizeOfRawData, file);
         print_raw_bytes(bytes, section_header_table[i].SizeOfRawData, 80);
+        free(bytes);
     }
 }
 
@@ -154,7 +160,7 @@ void parse_text_section(FILE *file, SECTION_HEADER *text_section) {
     fread(code, 1, text_section->SizeOfRawData, file);
     
     print_raw_bytes(code, text_section->SizeOfRawData, 0);
-    
+
     free(code);
 }
 
